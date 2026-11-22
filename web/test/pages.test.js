@@ -1,5 +1,5 @@
-// Web có hai trang: app (trang chủ) và trang giới thiệu. three.js chỉ được dùng ở trang giới thiệu,
-// để app mở nhanh trên điện thoại.
+// Web có ba trang: app (trang chủ), trang giới thiệu và trang sản phẩm (găng tay).
+// Thư viện 3D nặng (three.js) không được lọt vào gói của app, để app mở nhanh trên điện thoại.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
@@ -11,6 +11,11 @@ test('intro_page_is_built_next_to_the_app', () => {
   const input = Object.values(config.build?.rollupOptions?.input ?? {}).map(p => p.split('\\').join('/'))
   assert.ok(input.some(p => p.endsWith('/index.html') && !p.includes('gioi-thieu')), 'thiếu trang app')
   assert.ok(input.some(p => p.endsWith('gioi-thieu/index.html')), 'thiếu trang giới thiệu')
+})
+
+test('shop_page_is_built_too', () => {
+  const input = Object.values(config.build?.rollupOptions?.input ?? {}).map(p => p.split('\\').join('/'))
+  assert.ok(input.some(p => p.endsWith('san-pham/index.html')), 'thiếu trang sản phẩm')
 })
 
 test('three_is_only_used_by_the_intro_page', () => {

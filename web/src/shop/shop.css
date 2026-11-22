@@ -1,0 +1,162 @@
+/* Trang găng tay SignBridge AI (/san-pham/). Cùng thế giới với trang giới thiệu:
+   nền sáng, Lexend xanh đậm, xanh ngọc làm điểm nhấn, vàng cho gạch chân. */
+:root {
+  --teal: #1FB3A6;
+  --teal-ink: #0E7C72;
+  --teal-deep: #0B6A61;
+  --teal-soft: #DDF3F0;
+  --sun: #FFC431;
+  --navy: #18265A;
+  --navy-2: #22326F;
+  --muted: #4E5A7C;
+  --bg: #F3FAF9;
+  --card: #FFFFFF;
+  --line: rgba(24, 38, 90, .12);
+  --gutter: clamp(20px, 5vw, 96px);
+  --max: 1240px;
+}
+* { box-sizing: border-box; margin: 0 }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 80px; scrollbar-color: rgba(24, 38, 90, .3) var(--bg); caret-color: var(--teal-ink) }
+body { font: 400 16px/1.55 "Lexend Variable", "Lexend", system-ui, sans-serif; color: var(--navy); background: var(--bg); overflow-x: clip }
+::selection { background: var(--sun); color: var(--navy) }
+:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; border-radius: 12px }
+a { color: inherit }
+img { display: block; max-width: 100% }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto } *, *::before, *::after { animation: none !important; transition: none !important } }
+
+/* ---------- thanh trên ---------- */
+.nav { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 16px var(--gutter); background: var(--bg); transition: box-shadow .3s }
+.nav.scrolled { box-shadow: 0 1px 0 var(--line) }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none }
+.brand b { font-size: 19px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap }
+.brand b span { color: var(--teal-ink) }
+.nav nav { display: flex; align-items: center; gap: 4px }
+.nav-link { font-size: 15px; font-weight: 500; text-decoration: none; padding: 10px 14px; border-radius: 12px }
+.nav-link:hover { background: rgba(24, 38, 90, .06) }
+.nav-cta { font-size: 15px; font-weight: 600; text-decoration: none; padding: 10px 18px; border-radius: 12px; background: var(--navy); color: #fff; margin-left: 6px }
+.nav-cta:hover { background: var(--navy-2) }
+
+/* ---------- nút ---------- */
+.actions { display: flex; flex-wrap: wrap; gap: 12px }
+.actions.center { justify-content: center }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 54px; padding: 0 24px; border-radius: 16px; font-weight: 600; font-size: 16px; text-decoration: none; border: 0; cursor: pointer; font-family: inherit; transition: background-color .2s, transform .2s }
+.btn:active { transform: translateY(1px) }
+.btn.primary { background: var(--teal-ink); color: #fff }
+.btn.primary:hover { background: var(--teal-deep) }
+.btn.ghost { box-shadow: inset 0 0 0 1.5px var(--line); color: var(--navy) }
+.btn.ghost:hover { background: rgba(24, 38, 90, .05) }
+.btn.dark { background: var(--navy); color: #fff }
+.btn.dark:hover { background: var(--navy-2) }
+.btn.ghost-dark { box-shadow: inset 0 0 0 1.5px rgba(24, 38, 90, .35); color: var(--navy) }
+.btn.ghost-dark:hover { background: rgba(24, 38, 90, .08) }
+
+/* ---------- mở đầu ---------- */
+.hero { max-width: var(--max); margin: 0 auto; padding: clamp(28px, 6vh, 72px) var(--gutter) clamp(48px, 9vh, 110px); display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(28px, 4vw, 64px); align-items: center }
+.status { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--teal-ink); padding: 7px 14px; border-radius: 99px; background: var(--teal-soft) }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--teal-ink); animation: beat 1.8s ease-in-out infinite }
+@keyframes beat { 50% { transform: scale(.55); opacity: .45 } }
+.title { margin-top: 22px; font-size: clamp(2.4rem, 3.9vw, 4.6rem); white-space: nowrap; font-weight: 700; line-height: 1.02; letter-spacing: -.035em }
+.title .line { display: block }
+.title .line > div { padding: .2em .05em .08em; margin: -.2em -.05em -.08em } /* khung che chữ khi trồi lên: chừa chỗ cho dấu */
+.hl { position: relative; white-space: nowrap }
+.hl::after { content: ""; position: absolute; z-index: -1; left: -.03em; right: -.03em; bottom: .07em; height: .24em; border-radius: .06em; background: var(--sun); transform: scaleX(var(--bar, 1)); transform-origin: left }
+.lead { max-width: 38ch; margin-top: 22px; font-size: clamp(17px, 1.3vw, 20px); color: var(--muted); text-wrap: pretty }
+.hero .actions { margin-top: 32px }
+.hero-shot { border-radius: 28px; overflow: hidden; box-shadow: 0 2px 4px rgba(24, 38, 90, .06), 0 30px 60px -28px rgba(24, 38, 90, .35); clip-path: inset(0 round 28px) }
+.hero-shot img { width: 100%; height: auto; aspect-ratio: 1376 / 768; object-fit: cover }
+
+/* ---------- tiêu đề mục ---------- */
+section { scroll-margin-top: 80px }
+.tiers, .inside, .compare, .honest { max-width: var(--max); margin: 0 auto; padding: clamp(56px, 10vh, 120px) var(--gutter) 0 }
+.h2 { font-size: clamp(2rem, 3.6vw, 3.4rem); font-weight: 700; line-height: 1.08; letter-spacing: -.03em; text-wrap: balance }
+.sub { margin-top: 12px; max-width: 52ch; font-size: clamp(16px, 1.2vw, 19px); color: var(--muted); text-wrap: balance }
+.fine { margin-top: 18px; font-size: 14px; color: var(--muted) }
+
+/* ---------- ba phiên bản ---------- */
+.tier-grid { margin-top: 40px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch }
+.tier { position: relative; display: flex; flex-direction: column; background: var(--card); border-radius: 26px; overflow: hidden; box-shadow: 0 1px 2px rgba(24, 38, 90, .06), 0 18px 40px -26px rgba(24, 38, 90, .3); transition: transform .35s cubic-bezier(.2, .8, .2, 1), box-shadow .35s }
+.tier:hover { transform: translateY(-4px); box-shadow: 0 2px 4px rgba(24, 38, 90, .06), 0 28px 54px -28px rgba(24, 38, 90, .4) }
+.tier figure { aspect-ratio: 16 / 10; overflow: hidden; background: #E9EFEE }
+.tier figure img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.2, .8, .2, 1) }
+.tier:hover figure img { transform: scale(1.04) }
+.tier-body { display: flex; flex-direction: column; gap: 18px; padding: 24px 24px 26px; flex: 1 }
+.tier-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px }
+.tier-name { font-size: 30px; font-weight: 700; letter-spacing: -.02em }
+.tier-line { color: var(--muted); font-size: 16px; margin-top: -10px }
+.badge { font-size: 13px; font-weight: 700; padding: 5px 10px; border-radius: 99px; background: var(--sun); color: var(--navy); white-space: nowrap }
+.price { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1 }
+.price small { display: block; margin-top: 6px; font-size: 13px; font-weight: 500; letter-spacing: 0; color: var(--muted) }
+.big2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px }
+.big2 div { padding: 12px 14px; border-radius: 14px; background: var(--bg) }
+.big2 b { display: block; font-size: 22px; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums }
+.big2 span { font-size: 13px; color: var(--muted) }
+.specs { list-style: none; padding: 0; display: grid; gap: 8px; font-size: 15px }
+.specs li { display: grid; grid-template-columns: 74px 1fr; gap: 10px; padding-top: 8px; border-top: 1px solid var(--line) }
+.specs li span { color: var(--muted); font-size: 13px; padding-top: 2px }
+.tier .btn { margin-top: auto }
+/* phiên bản nhóm đề xuất: nền xanh đậm */
+.tier.pick { background: var(--navy); color: #fff }
+.tier.pick .tier-line, .tier.pick .price small, .tier.pick .specs li span, .tier.pick .big2 span { color: rgba(255, 255, 255, .72) }
+.tier.pick .big2 div { background: rgba(255, 255, 255, .08) }
+.tier.pick .specs li { border-color: rgba(255, 255, 255, .14) }
+.tier.pick .btn { background: var(--sun); color: var(--navy) }
+.tier.pick .btn:hover { background: #FFD25E }
+
+/* ---------- bên trong ---------- */
+.anatomy { margin-top: 40px; display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: clamp(24px, 3vw, 48px); align-items: start }
+.anatomy-shot { position: relative; border-radius: 26px; overflow: hidden; box-shadow: 0 1px 2px rgba(24, 38, 90, .06), 0 24px 50px -30px rgba(24, 38, 90, .35) }
+.anatomy-shot img { width: 100%; height: auto }
+.pin { position: absolute; width: 30px; height: 30px; translate: -50% -50%; border-radius: 50%; display: grid; place-items: center; background: var(--navy); color: #fff; font: 700 14px/1 inherit; border: 2px solid #fff; box-shadow: 0 4px 12px rgba(24, 38, 90, .35); cursor: default; transition: transform .25s, background-color .25s }
+.pin::before { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .85); opacity: 0; transform: scale(.7); transition: opacity .25s, transform .25s }
+.pin.on { background: var(--teal-ink); transform: scale(1.12) }
+.pin.on::before { opacity: 1; transform: scale(1) }
+.legend { list-style: none; padding: 0; counter-reset: part; display: grid; gap: 4px }
+.legend li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding: 12px 12px; border-radius: 14px; cursor: default; transition: background-color .2s }
+.legend li::before { counter-increment: part; content: counter(part); width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; background: var(--navy); color: #fff }
+.legend li.on { background: var(--card) }
+.legend b { display: block; font-size: 16px }
+.legend span { font-size: 14px; color: var(--muted) }
+.common { list-style: none; padding: 0; margin-top: 36px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 28px }
+.common li { padding: 16px 0; border-top: 1px solid var(--line) }
+.common b { display: block; font-size: 16px }
+.common span { font-size: 14px; color: var(--muted) }
+
+/* ---------- so sánh ---------- */
+.table-wrap { margin-top: 32px; overflow-x: auto; border-radius: 22px; background: var(--card); box-shadow: 0 1px 2px rgba(24, 38, 90, .06), 0 18px 40px -28px rgba(24, 38, 90, .28) }
+table { width: 100%; min-width: 760px; border-collapse: collapse; font-size: 15px }
+th, td { text-align: left; vertical-align: top; padding: 16px 18px; border-bottom: 1px solid var(--line) }
+thead th { font-size: 18px; font-weight: 700; background: var(--card); position: sticky; top: 0 }
+tbody th { width: 170px; font-weight: 600; color: var(--muted); font-size: 14px }
+td.pick, th.pick { background: rgba(31, 179, 166, .07) }
+tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0 }
+tbody tr { transition: background-color .2s }
+tbody tr:hover { background: rgba(24, 38, 90, .025) }
+td b { font-variant-numeric: tabular-nums }
+
+/* ---------- nói thật ---------- */
+.honest ul { list-style: none; padding: 0; margin-top: 28px; display: grid; gap: 0; max-width: 860px }
+.honest li { padding: 18px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 16px }
+.honest li b { color: var(--navy) }
+
+/* ---------- đăng ký quan tâm ---------- */
+.reserve { margin: clamp(64px, 12vh, 140px) 0 0; padding: clamp(64px, 12vh, 130px) var(--gutter); background: var(--teal); text-align: center; display: grid; justify-items: center; gap: 22px }
+.reserve .h2 { max-width: 20ch }
+.reserve-text { max-width: 54ch; font-size: clamp(17px, 1.3vw, 20px); font-weight: 500; line-height: 1.55 }
+.foot { padding: 28px var(--gutter); font-size: 14px; color: var(--muted); text-align: center }
+
+/* ---------- màn hẹp ---------- */
+@media (max-width: 980px) {
+  .hero { grid-template-columns: 1fr }
+  .tier-grid { grid-template-columns: 1fr; max-width: 560px }
+  .anatomy { grid-template-columns: 1fr }
+  .common { grid-template-columns: 1fr 1fr }
+}
+@media (max-width: 640px) {
+  .nav { padding: 12px 16px }
+  .nav-link { display: none }
+  .hero { padding-top: 20px }
+  .title { white-space: normal; font-size: clamp(2.3rem, 10.5vw, 3.2rem) }
+  .common { grid-template-columns: 1fr }
+  .hero .actions .btn, .reserve .btn { flex: 1 1 auto }
+  .pin { width: 24px; height: 24px; font-size: 12px }
+}
