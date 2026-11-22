@@ -85,6 +85,19 @@
           </div>
           <p class="words" id="draft" aria-live="polite"><span class="placeholder" data-t="draft.empty">Từ nhận được sẽ hiện ở đây</span></p>
           <button class="btn primary wide" id="send" disabled><svg><use href="#i-send"/></svg><span data-t="draft.send">Gửi và đọc to</span></button>
+          <button class="teach-open" id="teachOpen" type="button" data-t="teach.open">Dạy từ mới</button>
+        </div>
+
+        <!-- Dạy từ mới: người dùng tự ghi mẫu cho xin chào / tạm biệt / cảm ơn (src/custom.js) -->
+        <div class="card teach" id="teach" hidden>
+          <div class="row">
+            <span class="label" data-t="teach.title">Dạy từ mới cho AI</span>
+            <button class="icon-btn" id="teachClose" aria-label="Đóng" title="Đóng" data-t-attr="aria-label:teach.close;title:teach.close"><svg><use href="#i-x"/></svg></button>
+          </div>
+          <p class="teach-hint" data-t="teach.hint">Chọn một từ rồi làm ký hiệu đó trước camera 8 lần, mỗi lần xong hạ tay xuống. Mẫu chỉ lưu trên máy này.</p>
+          <div class="teach-words" id="teachWords"></div>
+          <p class="teach-status" id="teachStatus" aria-live="polite"></p>
+          <button class="teach-clear" id="teachClear" type="button" data-t="teach.clear" hidden>Xoá mẫu từ đang chọn</button>
         </div>
       </div>
 

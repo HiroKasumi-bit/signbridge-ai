@@ -33,7 +33,8 @@ export async function loadModel(url) {
   return decode(await (await fetch(url)).json())
 }
 
-export function predict(model, vec) {
+/** Điểm thô của AI cho từng từ (trước khi đổi ra xác suất). Cũng dùng làm "không gian ký hiệu" cho từ tự dạy. */
+export function scores(model, vec) {
   decode(model)
   let x = vec.map((v, i) => (v - model.mean[i]) / model.std[i])
   model.layers.forEach(({ W, b, rows, cols }, li) => {
@@ -46,6 +47,11 @@ export function predict(model, vec) {
     }
     x = li < model.layers.length - 1 ? y.map(v => (v > 0 ? v : 0)) : y
   })
+  return x
+}
+
+export function predict(model, vec) {
+  const x = scores(model, vec)
   const m = Math.max(...x)
   const e = x.map(v => Math.exp(v - m))
   const s = e.reduce((a, b) => a + b, 0)

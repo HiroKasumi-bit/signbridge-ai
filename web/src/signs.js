@@ -11,5 +11,13 @@ export const SIGNS = {
   asl: { words: aslWords, names: aslNames, examples: ['thankyou', 'drink', 'water', 'sleep'] },
 }
 
+// Từ người dùng tự dạy (trang Trò chuyện → "Dạy từ mới", xem custom.js), dùng chung cho VSL và ASL.
+export const CUSTOM_WORDS = [
+  { id: 'xin_chào', vi: 'xin chào', en: 'hello' },
+  { id: 'tạm_biệt', vi: 'tạm biệt', en: 'goodbye' },
+  { id: 'cảm_ơn', vi: 'cảm ơn', en: 'thank you' },
+]
+export const customName = (label, ui) => CUSTOM_WORDS.find(w => w.id === label)?.[ui]
+
 // Tên một từ theo ngôn ngữ giao diện; không có bản dịch thì dùng nhãn gốc (bỏ dấu gạch dưới).
-export const wordName = (sign, label, ui) => SIGNS[sign]?.names[label]?.[ui] ?? wordLabel(label)
+export const wordName = (sign, label, ui) => customName(label, ui) ?? SIGNS[sign]?.names[label]?.[ui] ?? wordLabel(label)

@@ -1,7 +1,9 @@
 // Trang trò chuyện hai chiều.
 // Người Điếc: ký hiệu trước camera -> từ hiện ra -> ghép câu -> "Gửi và đọc to".
 // Người nghe: bấm micro, nói -> chữ hiện ra trong khung trò chuyện.
+import { CUSTOM_WORDS, createCustom, customName } from '../custom.js'
 import { flash, flyWord, micMeter, pop, writeWords } from '../effects.js'
+import { sequenceVector } from '../features.js'
 import { t } from '../i18n.js'
 import { createRecognizer } from '../recognizer.js'
 import { toSentence } from '../sentence.js'
@@ -15,6 +17,46 @@ export function initChat(getEngine) {
   const cam = $('cam'), video = $('video'), overlay = $('overlay'), ctx = overlay.getContext('2d')
   let words = [] // mỗi từ nhớ cả ngôn ngữ ký hiệu: { sign, label }
   const name = w => wordName(w.sign, w.label, settings.ui)
+  let rec = null, custom = null // bộ nhận diện đang chạy và các từ tự dạy của ngôn ngữ đang chọn
+
+  // ---------- dạy từ mới (xin chào, tạm biệt, cảm ơn): người dùng tự ghi mẫu, xem src/custom.js ----------
+  const TARGET = 8
+  const teachBox = $('teach'), teachStatus = $('teachStatus'), teachClear = $('teachClear')
+  let teaching = null // từ đang ghi mẫu
+  const tt = (key, vars) => t(settings.ui, key, vars)
+  function renderTeach() {
+    $('teachWords').innerHTML = CUSTOM_WORDS.map(w => `<button type="button" class="teach-word${teaching === w.id ? ' on' : ''}" data-id="${w.id}">
+      <b>${w[settings.ui]}</b><span>${tt('teach.count', { n: custom ? custom.count(w.id) : 0 })}</span></button>`).join('')
+    teachClear.hidden = !teaching
+  }
+  function stopTeach() { teaching = null; rec?.teach(null); renderTeach() }
+  function startTeach(id) {
+    if (!rec) { teachStatus.textContent = tt('teach.needCam'); return }
+    teaching = id
+    const w = customName(id, settings.ui)
+    let n = 0
+    teachStatus.textContent = tt('teach.recording', { w, n, target: TARGET })
+    rec.teach(frames => { // mỗi lần làm xong một ký hiệu (hạ tay) là một mẫu
+      custom.add(id, sequenceVector(frames))
+      n++
+      flash(cam)
+      if (n >= TARGET) { stopTeach(); teachStatus.textContent = tt('teach.done', { w }) }
+      else { teachStatus.textContent = tt('teach.recording', { w, n, target: TARGET }); renderTeach() }
+    })
+    renderTeach()
+  }
+  $('teachOpen').onclick = () => { teachBox.hidden = false; renderTeach(); teachBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }
+  $('teachClose').onclick = () => { stopTeach(); teachBox.hidden = true; teachStatus.textContent = '' }
+  $('teachWords').onclick = e => { const b = e.target.closest('[data-id]'); if (b) startTeach(b.dataset.id) }
+  teachClear.onclick = () => {
+    if (!teaching || !custom) return
+    const id = teaching
+    stopTeach()
+    custom.clear(id)
+    teachStatus.textContent = tt('teach.cleared', { w: customName(id, settings.ui) })
+    renderTeach()
+  }
+  onSettings(renderTeach)
 
   // ---------- câu nháp ----------
   function renderDraft(newWord = false) {
@@ -115,14 +157,19 @@ export function initChat(getEngine) {
   })
 
   function run({ model, tracker, sign }) {
-    let rec = createRecognizer(model)
+    custom = createCustom(model, sign)
+    rec = createRecognizer(model, { custom })
+    renderTeach()
     // Đổi ngôn ngữ ký hiệu khi camera đang chạy: nạp "bộ não" mới, không cần bật lại camera.
     onSettings(async s => {
       if (s.sign === sign) return
       const next = await getEngine()
       if (next.sign !== settings.sign) return // người dùng đã đổi tiếp trong lúc tải
       sign = next.sign
-      rec = createRecognizer(next.model)
+      stopTeach()
+      custom = createCustom(next.model, sign) // mỗi ngôn ngữ ký hiệu có bộ từ tự dạy riêng
+      rec = createRecognizer(next.model, { custom })
+      renderTeach()
     })
     const dbg = import.meta.env.DEV ? (window.__loiTay = { frames: 0, withHands: 0, events: [] }) : null
     const liveWord = $('liveWord'), liveBar = $('liveBar'), hint = $('camHint')

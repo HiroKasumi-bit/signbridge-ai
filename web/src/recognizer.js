@@ -13,18 +13,23 @@ const hasHands = f => f[F - 1] !== 0 || f[F - 2] !== 0
 const raised = f => hasHands(f) && Math.min(f[16], f[19]) < 0.9
 
 export function createRecognizer(model, opts = {}) {
-  const o = { minProb: model.minProb ?? 0.5, minFrames: 10, restFrames: 6, maxFrames: 90, previewEvery: 4, previewWindow: 40, predictFn: predict, ...opts }
-  let seg = [], rest = 0, lastWord = null
+  // custom: các từ người dùng tự dạy (custom.js), được hỏi trước AI chính
+  const o = { minProb: model.minProb ?? 0.5, minFrames: 10, restFrames: 6, maxFrames: 90, previewEvery: 4, previewWindow: 40, predictFn: predict, custom: null, ...opts }
+  let seg = [], rest = 0, lastWord = null, recorder = null
 
-  // Hỏi AI; chỉ giữ câu trả lời là một từ thật và đủ tự tin, còn lại coi như không có gì.
+  // Hỏi từ tự dạy trước, rồi tới AI; chỉ giữ câu trả lời là một từ thật và đủ tự tin.
   const ask = frames => {
-    const r = o.predictFn(model, sequenceVector(frames), frames.length)
+    const vec = sequenceVector(frames)
+    const r = o.predictFn(model, vec, frames.length)
+    const mine = o.custom?.match(vec, r)
+    if (mine) return mine
     return r.label !== OTHER && r.prob >= o.minProb ? r : null
   }
   function finish() {
     const frames = seg
     seg = []
     if (frames.length < o.minFrames) return null // cử động thoáng qua, bỏ qua
+    if (recorder) { recorder(frames); return null } // đang dạy từ mới: chỉ ghi mẫu, không dịch
     const r = ask(frames)
     api.current = r
     if (!r || r.label === lastWord) return null
@@ -35,6 +40,8 @@ export function createRecognizer(model, opts = {}) {
   const api = {
     current: null,
     reset() { seg = []; rest = 0; lastWord = null; api.current = null },
+    /** Bật chế độ dạy từ: mỗi ký hiệu trọn vẹn được đưa cho fn(frames). Gọi teach(null) để tắt. */
+    teach(fn) { recorder = fn; seg = []; api.current = null },
     push(frame) {
       if (raised(frame)) {
         rest = 0

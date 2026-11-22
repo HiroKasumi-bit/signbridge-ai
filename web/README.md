@@ -38,6 +38,26 @@ bash render/encode.sh                                                # ghép khu
 
 Muốn xem nhanh một khung tĩnh thì chạy `-- still`.
 
+## Dạy từ mới (xin chào, tạm biệt, cảm ơn)
+
+AI chính chưa học ba từ này. Người dùng tự dạy ngay trên trang Trò chuyện:
+1. Bật camera, chọn VSL hoặc ASL.
+2. Bấm **Dạy từ mới**, chọn một từ.
+3. Làm ký hiệu đó 8 lần, mỗi lần xong thì hạ tay xuống. Mỗi lần là một mẫu.
+
+Mẫu chỉ lưu trong trình duyệt của máy đó, riêng cho VSL và ASL. Muốn dạy lại thì chọn từ rồi bấm "Xoá mẫu từ đang chọn".
+
+Cách nhận (`src/custom.js`): so cử động mới với các mẫu trong "không gian ký hiệu" của AI (điểm thô AI cho từng từ). Nhận là từ tự dạy khi:
+- cử động gần ít nhất 2 mẫu của từ đó, trong ngưỡng riêng của từ (trung vị khoảng cách giữa các mẫu × 1,3);
+- gần từ này hơn hẳn từ tự dạy kế bên;
+- AI chính không chắc chắn (≥ 60%) đó là một từ khác nó đã biết.
+
+Đã đo trên dữ liệu thật:
+- **ASL** (8 người, mỗi người tự dạy hello, bye, thankyou bằng 8 mẫu của chính mình): nhận đúng 90% số lần làm lại. Khoảng 16% ký hiệu khác của cùng người đó bị nhận nhầm thành một trong ba từ.
+- **VSL, chạy thật trong trình duyệt bằng camera giả:** dạy "xin chào" bằng 8 lần làm của một người. Những lần làm khác của chính người đó được nhận 4/6 lần ở lượt chạy đầu, 6/6 ở lượt sau. Các từ khác trong video thử (điện thoại, khẩu trang) vẫn ra đúng.
+
+Nghĩa là: hợp nhất với **chính người đã dạy**, cùng chỗ ngồi và ánh sáng. Người khác làm thì có thể không nhận, nên trước khi trình bày hãy dạy lại trên máy và ở chỗ sẽ trình bày.
+
 ## Đưa lên mạng
 
 Web chạy trên **Cloudflare Pages** tại https://signbridge-vn.pages.dev (dự án Pages `signbridge-vn`). Sau khi sửa code:
@@ -55,7 +75,7 @@ npm run deploy
 npm test
 ```
 
-Lệnh này chạy 4 nhóm kiểm thử:
+Lệnh này chạy 5 nhóm kiểm thử:
 - **Đối chiếu với Python:** bộ đo cử chỉ và bộ não trên web phải ra **cùng con số** với bản Python (`ai/`).
 - **Bộ nhận diện liên tục:**
   - không có tay thì không ra từ;
@@ -63,6 +83,12 @@ Lệnh này chạy 4 nhóm kiểm thử:
   - giữ nguyên tay thì không lặp từ;
   - cử động thoáng qua bị bỏ qua;
   - AI đoán "không phải từ nào" hoặc chưa đủ tự tin thì không hiện gì.
+- **Từ tự dạy:**
+  - nhận lại cử động giống mẫu, bỏ qua cử động khác hẳn hoặc lưng chừng;
+  - chưa đủ 3 mẫu thì chưa dùng;
+  - mẫu nhớ riêng cho VSL và ASL, xoá được;
+  - AI chính chắc chắn là từ khác thì không nhận nhầm;
+  - lúc đang ghi mẫu thì không hiện từ.
 - **Ghép câu và tìm từ** (gõ không dấu vẫn tìm được).
 - **Hai ngôn ngữ giao diện:**
   - tiếng Việt và tiếng Anh có đủ cùng một bộ câu chữ;
@@ -82,6 +108,7 @@ Lệnh này chạy 4 nhóm kiểm thử:
 | `src/features.js` | Bộ đo cử chỉ: đổi điểm khớp thành 149 con số. Đây là bản dịch y hệt của `ai/sign/features.py`. |
 | `src/model.js` | "Bộ não" (LDA, 0,5 MB, trọng số 8-bit). Chỉ là nhân ma trận + softmax, nên không cần thư viện AI. |
 | `src/recognizer.js` | Tách từng ký hiệu theo lúc **hạ tay**: giơ tay thì gom khung, hạ tay ~0,2 giây thì đoán cả đoạn (giống lúc AI học). Ra liền mạch quá 3 giây thì tự chốt. AI đoán "không phải từ nào" hoặc dưới ngưỡng tự tin thì bỏ qua. |
+| `src/custom.js` | "Dạy từ mới": lưu mẫu người dùng tự ghi và nhận các từ đó (xem mục trên). `recognizer.js` hỏi nó trước khi hỏi AI chính. |
 | `src/words/vsl.json`, `asl.json` | Danh sách từ AI biết, do `ai/train.py` xuất ra cùng lúc với model nên luôn khớp nhau. |
 | `src/words/vsl.names.json`, `asl.names.json` | Tên mỗi từ bằng tiếng Việt và tiếng Anh, để hiện chữ đúng ngôn ngữ giao diện. |
 | `src/sentence.js` | Ghép các từ thành câu. |
