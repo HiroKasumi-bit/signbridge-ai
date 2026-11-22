@@ -23,6 +23,8 @@
     <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/></symbol>
     <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
     <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M4 20h16"/></symbol>
   </svg>
 
@@ -46,6 +48,7 @@
     <a href="#chat" data-tab="chat"><svg><use href="#i-chat"/></svg><span data-t="tab.chat">Trò chuyện</span></a>
     <a href="#video" data-tab="video-view"><svg><use href="#i-film"/></svg><span data-t="tab.video">Dịch video</span></a>
     <a href="#vocab" data-tab="vocab"><svg><use href="#i-book"/></svg><span data-t="tab.vocab">Từ vựng</span></a>
+    <a href="#mine" data-tab="mine"><svg><use href="#i-hand"/></svg><span data-t="tab.mine">Ký hiệu riêng</span></a>
     <span class="tab-ind" aria-hidden="true"></span>
   </nav>
 
@@ -85,19 +88,6 @@
           </div>
           <p class="words" id="draft" aria-live="polite"><span class="placeholder" data-t="draft.empty">Từ nhận được sẽ hiện ở đây</span></p>
           <button class="btn primary wide" id="send" disabled><svg><use href="#i-send"/></svg><span data-t="draft.send">Gửi và đọc to</span></button>
-          <button class="teach-open" id="teachOpen" type="button" data-t="teach.open">Dạy từ mới</button>
-        </div>
-
-        <!-- Dạy từ mới: người dùng tự ghi mẫu cho xin chào / tạm biệt / cảm ơn (src/custom.js) -->
-        <div class="card teach" id="teach" hidden>
-          <div class="row">
-            <span class="label" data-t="teach.title">Dạy từ mới cho AI</span>
-            <button class="icon-btn" id="teachClose" aria-label="Đóng" title="Đóng" data-t-attr="aria-label:teach.close;title:teach.close"><svg><use href="#i-x"/></svg></button>
-          </div>
-          <p class="teach-hint" data-t="teach.hint">Chọn một từ rồi làm ký hiệu đó trước camera 8 lần, mỗi lần xong hạ tay xuống. Mẫu chỉ lưu trên máy này.</p>
-          <div class="teach-words" id="teachWords"></div>
-          <p class="teach-status" id="teachStatus" aria-live="polite"></p>
-          <button class="teach-clear" id="teachClear" type="button" data-t="teach.clear" hidden>Xoá mẫu từ đang chọn</button>
         </div>
       </div>
 
@@ -147,6 +137,60 @@
           <span id="creditData">Dữ liệu huấn luyện: <a href="https://zenodo.org/records/23610105" target="_blank" rel="noopener">VieSign-10K</a> của Cap Pham Dinh Thang (giấy phép CC BY 4.0).</span>
           <span data-t-html="credit.rest">Nhận diện điểm khớp: MediaPipe của Google (Apache 2.0).<br>Dự án khởi nghiệp của nhóm học sinh lớp 11A4 và 11A8, Trường THPT Lê Quý Đôn · Giáo viên hướng dẫn: cô Lê Thị Thúy.</span>
         </p>
+      </div>
+    </section>
+
+    <!-- TRANG 4: KÝ HIỆU RIÊNG (tính năng trả phí, tạm mở bằng mật khẩu; xem src/views/mine.js) -->
+    <section class="view" id="mine" aria-label="Ký hiệu riêng" hidden data-t-attr="aria-label:tab.mine">
+      <div class="card pad lock-card" id="mineLock">
+        <svg class="lock-icon"><use href="#i-lock"/></svg>
+        <span class="paid" data-t="mine.paid">Tính năng trả phí</span>
+        <h1 data-t="mine.title">Ký hiệu riêng</h1>
+        <p class="lead" data-t="mine.lead">Tự sáng tạo ký hiệu cho những điều bạn hay nói.</p>
+        <form class="inline-form" id="mineForm">
+          <input class="field" type="password" id="minePass" autocomplete="off" required placeholder="Mật khẩu" aria-label="Mật khẩu" data-t-attr="placeholder:mine.pass;aria-label:mine.pass">
+          <button class="btn primary" type="submit" data-t="mine.unlock">Mở khoá</button>
+        </form>
+        <p class="err" id="mineErr" aria-live="polite"></p>
+      </div>
+
+      <div class="mine-app" id="mineApp" hidden>
+        <div class="col">
+          <div class="cam" id="mCam">
+            <video id="mVideo" playsinline muted></video>
+            <canvas id="mOverlay"></canvas>
+            <div class="cam-off" id="mCamOff">
+              <svg class="hand-icon"><use href="#i-hand"/></svg>
+              <p id="mCamMsg" data-t="mine.cam">Bật camera để tạo ký hiệu mới và dùng thử ký hiệu của bạn.</p>
+              <button class="btn primary" id="mCamStart"><svg><use href="#i-cam"/></svg><span data-t="cam.start">Bật camera</span></button>
+            </div>
+            <p class="cam-hint" id="mCamHint" hidden data-t="cam.hint">Đưa tay vào khung hình</p>
+            <div class="live" id="mLive" hidden>
+              <span id="mLiveWord">…</span>
+              <span class="meter" aria-hidden="true"><i id="mLiveBar"></i></span>
+            </div>
+          </div>
+          <div class="card">
+            <span class="label" data-t="mine.heard">Vừa nhận</span>
+            <p class="said" id="mSaid" aria-live="polite"><span class="placeholder" data-t="mine.idle">Làm một ký hiệu bạn đã tạo, câu sẽ hiện ở đây và được đọc to.</span></p>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card mine-card">
+            <div class="row">
+              <span class="label" data-t="mine.list">Ký hiệu của tôi</span>
+              <button class="text-btn" id="mineLockBtn" type="button" data-t="mine.lock">Khoá lại</button>
+            </div>
+            <form class="inline-form" id="mNew">
+              <input class="field" id="mMeaning" maxlength="80" autocomplete="off" placeholder="Ví dụ: Tôi cần đi vệ sinh" aria-label="Ký hiệu này nghĩa là" data-t-attr="placeholder:mine.placeholder;aria-label:mine.meaning">
+              <button class="btn primary" type="submit" id="mRecord"><span data-t="mine.record">Ghi ký hiệu</span></button>
+            </form>
+            <p class="status" id="mStatus" aria-live="polite"></p>
+            <ul class="signs" id="mList"></ul>
+            <p class="placeholder" id="mEmpty" data-t="mine.empty">Chưa có ký hiệu nào.</p>
+          </div>
+        </div>
       </div>
     </section>
   </main>

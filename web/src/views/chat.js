@@ -1,9 +1,9 @@
 // Trang trò chuyện hai chiều.
 // Người Điếc: ký hiệu trước camera -> từ hiện ra -> ghép câu -> "Gửi và đọc to".
 // Người nghe: bấm micro, nói -> chữ hiện ra trong khung trò chuyện.
-import { CUSTOM_WORDS, createCustom, customName } from '../custom.js'
+import { camError, drawHands, everyFrame, openCamera } from '../camera.js'
+import { createCustom } from '../custom.js'
 import { flash, flyWord, micMeter, pop, writeWords } from '../effects.js'
-import { sequenceVector } from '../features.js'
 import { t } from '../i18n.js'
 import { createRecognizer } from '../recognizer.js'
 import { toSentence } from '../sentence.js'
@@ -14,49 +14,9 @@ import { createListener, speak } from '../speech.js'
 const $ = id => document.getElementById(id)
 
 export function initChat(getEngine) {
-  const cam = $('cam'), video = $('video'), overlay = $('overlay'), ctx = overlay.getContext('2d')
+  const cam = $('cam'), video = $('video'), overlay = $('overlay')
   let words = [] // mỗi từ nhớ cả ngôn ngữ ký hiệu: { sign, label }
   const name = w => wordName(w.sign, w.label, settings.ui)
-  let rec = null, custom = null // bộ nhận diện đang chạy và các từ tự dạy của ngôn ngữ đang chọn
-
-  // ---------- dạy từ mới (xin chào, tạm biệt, cảm ơn): người dùng tự ghi mẫu, xem src/custom.js ----------
-  const TARGET = 8
-  const teachBox = $('teach'), teachStatus = $('teachStatus'), teachClear = $('teachClear')
-  let teaching = null // từ đang ghi mẫu
-  const tt = (key, vars) => t(settings.ui, key, vars)
-  function renderTeach() {
-    $('teachWords').innerHTML = CUSTOM_WORDS.map(w => `<button type="button" class="teach-word${teaching === w.id ? ' on' : ''}" data-id="${w.id}">
-      <b>${w[settings.ui]}</b><span>${tt('teach.count', { n: custom ? custom.count(w.id) : 0 })}</span></button>`).join('')
-    teachClear.hidden = !teaching
-  }
-  function stopTeach() { teaching = null; rec?.teach(null); renderTeach() }
-  function startTeach(id) {
-    if (!rec) { teachStatus.textContent = tt('teach.needCam'); return }
-    teaching = id
-    const w = customName(id, settings.ui)
-    let n = 0
-    teachStatus.textContent = tt('teach.recording', { w, n, target: TARGET })
-    rec.teach(frames => { // mỗi lần làm xong một ký hiệu (hạ tay) là một mẫu
-      custom.add(id, sequenceVector(frames))
-      n++
-      flash(cam)
-      if (n >= TARGET) { stopTeach(); teachStatus.textContent = tt('teach.done', { w }) }
-      else { teachStatus.textContent = tt('teach.recording', { w, n, target: TARGET }); renderTeach() }
-    })
-    renderTeach()
-  }
-  $('teachOpen').onclick = () => { teachBox.hidden = false; renderTeach(); teachBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }
-  $('teachClose').onclick = () => { stopTeach(); teachBox.hidden = true; teachStatus.textContent = '' }
-  $('teachWords').onclick = e => { const b = e.target.closest('[data-id]'); if (b) startTeach(b.dataset.id) }
-  teachClear.onclick = () => {
-    if (!teaching || !custom) return
-    const id = teaching
-    stopTeach()
-    custom.clear(id)
-    teachStatus.textContent = tt('teach.cleared', { w: customName(id, settings.ui) })
-    renderTeach()
-  }
-  onSettings(renderTeach)
 
   // ---------- câu nháp ----------
   function renderDraft(newWord = false) {
@@ -131,74 +91,46 @@ export function initChat(getEngine) {
     btn.disabled = true
     msg.textContent = t(settings.ui, 'cam.loading')
     try {
-      const [engine] = await Promise.all([getEngine(), startSource()])
+      const [engine] = await Promise.all([getEngine(), openCamera(video, cam, demo)])
       $('camOff').hidden = true
       $('live').hidden = false
       run(engine)
     } catch (err) {
       console.error('[SignBridge AI] không khởi động được:', err)
       btn.disabled = false
-      msg.textContent = t(settings.ui, err?.name === 'NotAllowedError' ? 'cam.denied' : err?.name === 'NotFoundError' ? 'cam.none' : 'cam.fail')
+      msg.textContent = t(settings.ui, camError(err))
     }
   }
 
-  async function startSource() {
-    if (demo) {
-      video.src = demo; video.loop = true
-    } else {
-      video.srcObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false })
-      cam.classList.add('mirror') // như nhìn gương; AI vẫn nhận ảnh gốc
-    }
-    // Trình duyệt có thể tạm dừng video khi tab ở chế độ nền: không coi là lỗi, sẽ tự phát lại
-    try { await video.play() } catch (err) { if (err.name !== 'AbortError') throw err }
-  }
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && video.paused && (video.srcObject || video.src)) video.play().catch(() => {})
-  })
+  // Từ tự dạy (xin chào, tạm biệt, cảm ơn): mẫu đã ghi trước đây vẫn lưu trong máy và vẫn được nhận,
+  // dù bảng "Dạy từ mới" đã bỏ khỏi trang này (xem src/custom.js).
+  const recognizer = (model, sign) => createRecognizer(model, { custom: createCustom(model, sign) })
 
   function run({ model, tracker, sign }) {
-    custom = createCustom(model, sign)
-    rec = createRecognizer(model, { custom })
-    renderTeach()
+    let rec = recognizer(model, sign)
     // Đổi ngôn ngữ ký hiệu khi camera đang chạy: nạp "bộ não" mới, không cần bật lại camera.
     onSettings(async s => {
       if (s.sign === sign) return
       const next = await getEngine()
       if (next.sign !== settings.sign) return // người dùng đã đổi tiếp trong lúc tải
       sign = next.sign
-      stopTeach()
-      custom = createCustom(next.model, sign) // mỗi ngôn ngữ ký hiệu có bộ từ tự dạy riêng
-      rec = createRecognizer(next.model, { custom })
-      renderTeach()
+      rec = recognizer(next.model, sign)
     })
     const dbg = import.meta.env.DEV ? (window.__loiTay = { frames: 0, withHands: 0, events: [] }) : null
     const liveWord = $('liveWord'), liveBar = $('liveBar'), hint = $('camHint')
     const view = $('chat')
-    const tick = () => {
-      // chỉ nhận diện khi đang ở trang trò chuyện (trang dịch video dùng chung "mắt")
-      if (!view.hidden && video.readyState >= 2 && !video.paused) {
-        const { frame, hands, landmarks } = tracker.detect(video, performance.now())
-        const hit = rec.push(frame, performance.now())
-        if (dbg) { dbg.frames++; dbg.withHands += hands > 0; dbg.current = rec.current && { label: rec.current.label, prob: rec.current.prob }; if (hit) dbg.events.push(hit) }
-        hint.hidden = hands > 0
-        const cur = rec.current
-        liveWord.textContent = hands && cur ? wordName(sign, cur.label, settings.ui) : '…'
-        liveBar.style.width = `${hands && cur ? Math.round(cur.prob * 100) : 0}%`
-        draw(landmarks)
-        if (hit) { words.push({ sign, label: hit.word }); renderDraft(true); flash(cam) }
-      }
-      video.requestVideoFrameCallback ? video.requestVideoFrameCallback(tick) : requestAnimationFrame(tick)
-    }
-    tick()
-  }
-
-  // Chấm các điểm khớp tay lên hình (chấm nhỏ, màu thương hiệu)
-  function draw({ hands }) {
-    if (overlay.width !== video.videoWidth) { overlay.width = video.videoWidth; overlay.height = video.videoHeight }
-    ctx.clearRect(0, 0, overlay.width, overlay.height)
-    hands.forEach((h, i) => {
-      ctx.fillStyle = i ? '#FFC431' : '#1FB3A6'
-      for (const p of h) { ctx.beginPath(); ctx.arc(p.x * overlay.width, p.y * overlay.height, 3.5, 0, 7); ctx.fill() }
+    everyFrame(video, () => {
+      // chỉ nhận diện khi đang ở trang trò chuyện (các trang khác dùng chung "mắt")
+      if (view.hidden || video.readyState < 2 || video.paused) return
+      const { frame, hands, landmarks } = tracker.detect(video, performance.now())
+      const hit = rec.push(frame, performance.now())
+      if (dbg) { dbg.frames++; dbg.withHands += hands > 0; dbg.current = rec.current && { label: rec.current.label, prob: rec.current.prob }; if (hit) dbg.events.push(hit) }
+      hint.hidden = hands > 0
+      const cur = rec.current
+      liveWord.textContent = hands && cur ? wordName(sign, cur.label, settings.ui) : '…'
+      liveBar.style.width = `${hands && cur ? Math.round(cur.prob * 100) : 0}%`
+      drawHands(overlay, video, landmarks.hands)
+      if (hit) { words.push({ sign, label: hit.word }); renderDraft(true); flash(cam) }
     })
   }
 }

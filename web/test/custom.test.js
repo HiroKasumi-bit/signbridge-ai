@@ -95,3 +95,24 @@ test('teaching_mode_hands_each_sign_to_the_recorder_and_says_nothing', () => {
   assert.deepEqual(hits, [])
   assert.deepEqual(recorded, [30])
 })
+
+// Tab "Ký hiệu riêng": ký hiệu người dùng tự sáng tạo, lưu riêng, không đụng vào các từ đã dạy ở Trò chuyện.
+test('personal_signs_live_under_their_own_storage_key', () => {
+  const store = memStore()
+  taught(store) // xin chào, cảm ơn đã dạy trước đó
+  const before = store.get('signbridge.custom.v1')
+  const mine = createCustom(model, 'all', store, { ...OPTS, key: 'signbridge.mine.v1' })
+  for (let k = 0; k < 4; k++) mine.add('Tôi cần đi vệ sinh', around(A))
+  assert.equal(store.get('signbridge.custom.v1'), before, 'dữ liệu cũ phải giữ nguyên')
+  assert.equal(createCustom(model, 'all', store, { ...OPTS, key: 'signbridge.mine.v1' }).count('Tôi cần đi vệ sinh'), 4)
+  assert.equal(createCustom(model, 'vsl', store).count('Tôi cần đi vệ sinh'), 0)
+})
+
+test('labels_lists_every_sign_in_the_order_it_was_made', () => {
+  const c = createCustom(model, 'all', memStore())
+  c.add('Tôi đói', around(A))
+  for (let k = 0; k < 3; k++) c.add('Gọi giúp tôi', around(B))
+  assert.deepEqual(c.labels(), ['Tôi đói', 'Gọi giúp tôi'])
+  c.clear('Tôi đói')
+  assert.deepEqual(c.labels(), ['Gọi giúp tôi'])
+})

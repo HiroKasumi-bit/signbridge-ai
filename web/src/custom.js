@@ -1,5 +1,5 @@
-// "Dạy từ mới": người dùng tự ghi vài mẫu cho một từ (làm ký hiệu rồi hạ tay), app nhận từ đó bằng cách
-// so với mẫu gần nhất. Không cần dạy lại AI. Mẫu lưu trong máy (localStorage), riêng cho VSL và ASL.
+// Ký hiệu người dùng tự ghi mẫu (từ tự dạy ở Trò chuyện, tab "Ký hiệu riêng"): làm ký hiệu rồi hạ tay vài lần,
+// app nhận bằng cách so với các mẫu đó. Không cần dạy lại AI. Mẫu lưu trong máy (localStorage).
 //
 // Cách so (đã thử trên dữ liệu VieSign thật, xem web/README.md):
 // - so trong "không gian ký hiệu" của AI (điểm thô của AI cho từng từ), không so thẳng số đo khớp;
@@ -31,15 +31,17 @@ const median = xs => { const s = [...xs].sort((a, b) => a - b); return s[Math.fl
 /**
  * opts.embed(vec): đưa vector ký hiệu vào không gian so sánh (mặc định: điểm thô của AI).
  * opts.main(vec): đoán của AI chính { label, prob } (mặc định: predict), dùng để phủ quyết.
+ * opts.key: chỗ lưu trong máy (mặc định: các từ dạy ở Trò chuyện; tab "Ký hiệu riêng" lưu chỗ khác).
  */
 export function createCustom(model, sign, store = localStore, opts = {}) {
   const embed = opts.embed ?? (v => scores(model, v))
   const main = opts.main ?? (v => predict(model, v))
   const loosen = opts.loosen ?? LOOSEN, veto = opts.veto ?? VETO, needed = opts.needed ?? NEEDED
-  const read = () => { try { return JSON.parse(store.get(KEY)) ?? {} } catch { return {} } }
+  const key = opts.key ?? KEY
+  const read = () => { try { return JSON.parse(store.get(key)) ?? {} } catch { return {} } }
   const all = read()
   const mine = (all[sign] ??= {})
-  const save = () => store.set(KEY, JSON.stringify(all))
+  const save = () => store.set(key, JSON.stringify(all))
 
   let cache = null // tính lại khi mẫu đổi
   function prepared() {
@@ -62,6 +64,7 @@ export function createCustom(model, sign, store = localStore, opts = {}) {
 
   return {
     count: label => (mine[label] ?? []).length,
+    labels: () => Object.keys(mine),
     add(label, vec) { (mine[label] ??= []).push(enc(vec)); cache = null; save() },
     clear(label) { delete mine[label]; cache = null; save() },
     /** Trả về { label, prob } nếu cử động khớp một từ tự dạy, không thì null. guess: đoán sẵn của AI chính (nếu có). */

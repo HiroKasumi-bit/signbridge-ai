@@ -8,6 +8,7 @@ import { onSettings, setSettings, settings } from './settings.js'
 import { SIGNS, wordName } from './signs.js'
 import { createTracker } from './tracker.js'
 import { initChat } from './views/chat.js'
+import { initMine } from './views/mine.js'
 import { initVideo } from './views/video.js'
 import { initVocab } from './views/vocab.js'
 
@@ -22,7 +23,7 @@ export function getEngine() {
   return Promise.all([models[sign], tracker]).then(([model, tracker]) => ({ model, tracker, sign }))
 }
 
-const views = { chat: 'chat', video: 'video-view', vocab: 'vocab' }
+const views = { chat: 'chat', video: 'video-view', vocab: 'vocab', mine: 'mine' }
 const tabInd = document.querySelector('.tab-ind')
 function route(first = false) {
   const key = location.hash.slice(1) in views ? location.hash.slice(1) : 'chat'
@@ -67,3 +68,4 @@ renderText(settings)
 initChat(getEngine)
 initVideo(getEngine)
 initVocab()
+initMine(getEngine)

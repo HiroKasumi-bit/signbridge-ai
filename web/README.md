@@ -38,14 +38,9 @@ bash render/encode.sh                                                # ghép khu
 
 Muốn xem nhanh một khung tĩnh thì chạy `-- still`.
 
-## Dạy từ mới (xin chào, tạm biệt, cảm ơn)
+## Từ tự dạy (xin chào, tạm biệt, cảm ơn)
 
-AI chính chưa học ba từ này. Người dùng tự dạy ngay trên trang Trò chuyện:
-1. Bật camera, chọn VSL hoặc ASL.
-2. Bấm **Dạy từ mới**, chọn một từ.
-3. Làm ký hiệu đó 8 lần, mỗi lần xong thì hạ tay xuống. Mỗi lần là một mẫu.
-
-Mẫu chỉ lưu trong trình duyệt của máy đó, riêng cho VSL và ASL. Muốn dạy lại thì chọn từ rồi bấm "Xoá mẫu từ đang chọn".
+AI chính chưa học ba từ này. Trước đây người dùng tự dạy bằng bảng "Dạy từ mới" trên trang Trò chuyện (8 mẫu mỗi từ, riêng cho VSL và ASL). Bảng đó đã được bỏ khỏi giao diện, nhưng **mẫu đã dạy vẫn lưu trong trình duyệt** (khoá `signbridge.custom.v1`) và trang Trò chuyện **vẫn nhận** các từ đó. Xoá dữ liệu trình duyệt hoặc đổi máy thì mất mẫu.
 
 Cách nhận (`src/custom.js`): so cử động mới với các mẫu trong "không gian ký hiệu" của AI (điểm thô AI cho từng từ). Nhận là từ tự dạy khi:
 - cử động gần ít nhất 2 mẫu của từ đó, trong ngưỡng riêng của từ (trung vị khoảng cách giữa các mẫu × 1,3);
@@ -56,7 +51,21 @@ Cách nhận (`src/custom.js`): so cử động mới với các mẫu trong "kh
 - **ASL** (8 người, mỗi người tự dạy hello, bye, thankyou bằng 8 mẫu của chính mình): nhận đúng 90% số lần làm lại. Khoảng 16% ký hiệu khác của cùng người đó bị nhận nhầm thành một trong ba từ.
 - **VSL, chạy thật trong trình duyệt bằng camera giả:** dạy "xin chào" bằng 8 lần làm của một người. Những lần làm khác của chính người đó được nhận 4/6 lần ở lượt chạy đầu, 6/6 ở lượt sau. Các từ khác trong video thử (điện thoại, khẩu trang) vẫn ra đúng.
 
-Nghĩa là: hợp nhất với **chính người đã dạy**, cùng chỗ ngồi và ánh sáng. Người khác làm thì có thể không nhận, nên trước khi trình bày hãy dạy lại trên máy và ở chỗ sẽ trình bày.
+Nghĩa là: hợp nhất với **chính người đã dạy**, cùng chỗ ngồi và ánh sáng. Người khác làm thì có thể không nhận.
+
+## Ký hiệu riêng (tính năng trả phí)
+
+Tab thứ 4, **Ký hiệu riêng**: người Điếc tự sáng tạo ký hiệu cho những điều họ hay nói. Mỗi ký hiệu mang một từ hoặc cả một câu do họ gõ (ví dụ "Tôi cần đi vệ sinh").
+1. Nhập mật khẩu để mở khoá. Mở một lần là trình duyệt nhớ; bấm "Khoá lại" để khoá.
+2. Bật camera, gõ nghĩa, bấm **Ghi ký hiệu**, rồi làm ký hiệu đó 8 lần (mỗi lần hạ tay xuống).
+3. Làm ký hiệu: câu hiện ở ô "Vừa nhận" và được đọc to. "Ghi thêm" để thêm mẫu, "Xoá" để bỏ ký hiệu.
+
+Đang phát triển nên:
+- ký hiệu riêng **chỉ được nhận trong tab này**; trong tab này cũng chỉ nhận ký hiệu riêng, không nhận từ của AI chính;
+- mẫu lưu trong trình duyệt (khoá `signbridge.mine.v1`), tách khỏi các từ tự dạy ở trên, dùng chung cho VSL và ASL;
+- mật khẩu chỉ là khoá để trình diễn: nó được băm nhưng vẫn nằm trong code web (`src/lock.js`). Thu phí thật cần tài khoản và máy chủ.
+
+Cách nhận giống hệt từ tự dạy (`src/custom.js`). Thử bằng camera giả: tạo "Tôi cần đi vệ sinh" từ 8 lần làm một ký hiệu của một người, rồi phát video có ký hiệu đó lẫn với các từ khác. Câu được nhận 5 lần, các từ khác (điện thoại, khẩu trang) không làm hiện câu nào.
 
 ## Đưa lên mạng
 
@@ -75,7 +84,7 @@ npm run deploy
 npm test
 ```
 
-Lệnh này chạy 5 nhóm kiểm thử:
+Lệnh này chạy 6 nhóm kiểm thử:
 - **Đối chiếu với Python:** bộ đo cử chỉ và bộ não trên web phải ra **cùng con số** với bản Python (`ai/`).
 - **Bộ nhận diện liên tục:**
   - không có tay thì không ra từ;
@@ -88,7 +97,9 @@ Lệnh này chạy 5 nhóm kiểm thử:
   - chưa đủ 3 mẫu thì chưa dùng;
   - mẫu nhớ riêng cho VSL và ASL, xoá được;
   - AI chính chắc chắn là từ khác thì không nhận nhầm;
-  - lúc đang ghi mẫu thì không hiện từ.
+  - lúc đang ghi mẫu thì không hiện từ;
+  - ký hiệu riêng lưu chỗ khác, không đụng vào từ đã dạy.
+- **Khoá tab Ký hiệu riêng:** sai mật khẩu thì vẫn khoá; đúng thì mở và nhớ; bỏ qua chữ hoa, dấu cách thừa; khoá lại được.
 - **Ghép câu và tìm từ** (gõ không dấu vẫn tìm được).
 - **Hai ngôn ngữ giao diện:**
   - tiếng Việt và tiếng Anh có đủ cùng một bộ câu chữ;
@@ -99,7 +110,7 @@ Lệnh này chạy 5 nhóm kiểm thử:
 
 | File | Làm gì |
 |---|---|
-| `index.html` | Khung của cả 3 trang: Trò chuyện, Dịch video, Từ vựng. |
+| `index.html` | Khung của cả 4 trang: Trò chuyện, Dịch video, Từ vựng, Ký hiệu riêng. |
 | `src/main.js` | Chuyển trang, đổi chữ khi bấm VI/EN, và tải AI của ngôn ngữ ký hiệu đang chọn khi cần lần đầu. |
 | `src/settings.js` | Nhớ lựa chọn VSL/ASL và VI/EN (trong trình duyệt), báo cho các trang khi đổi. |
 | `src/i18n.js` | Toàn bộ chữ trên giao diện, bản tiếng Việt và tiếng Anh. Thẻ HTML có `data-t="..."` được tự điền chữ. |
@@ -108,7 +119,9 @@ Lệnh này chạy 5 nhóm kiểm thử:
 | `src/features.js` | Bộ đo cử chỉ: đổi điểm khớp thành 149 con số. Đây là bản dịch y hệt của `ai/sign/features.py`. |
 | `src/model.js` | "Bộ não" (LDA, 0,5 MB, trọng số 8-bit). Chỉ là nhân ma trận + softmax, nên không cần thư viện AI. |
 | `src/recognizer.js` | Tách từng ký hiệu theo lúc **hạ tay**: giơ tay thì gom khung, hạ tay ~0,2 giây thì đoán cả đoạn (giống lúc AI học). Ra liền mạch quá 3 giây thì tự chốt. AI đoán "không phải từ nào" hoặc dưới ngưỡng tự tin thì bỏ qua. |
-| `src/custom.js` | "Dạy từ mới": lưu mẫu người dùng tự ghi và nhận các từ đó (xem mục trên). `recognizer.js` hỏi nó trước khi hỏi AI chính. |
+| `src/custom.js` | Lưu mẫu người dùng tự ghi và nhận các ký hiệu đó (từ tự dạy, ký hiệu riêng). `recognizer.js` hỏi nó trước khi hỏi AI chính. |
+| `src/lock.js` | Khoá tab Ký hiệu riêng bằng mật khẩu (tạm thời, thay cho tài khoản trả phí). |
+| `src/camera.js` | Mở camera, vẽ điểm khớp tay, chạy theo từng khung hình. Dùng chung cho Trò chuyện và Ký hiệu riêng. |
 | `src/words/vsl.json`, `asl.json` | Danh sách từ AI biết, do `ai/train.py` xuất ra cùng lúc với model nên luôn khớp nhau. |
 | `src/words/vsl.names.json`, `asl.names.json` | Tên mỗi từ bằng tiếng Việt và tiếng Anh, để hiện chữ đúng ngôn ngữ giao diện. |
 | `src/sentence.js` | Ghép các từ thành câu. |
