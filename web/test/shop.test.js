@@ -2,7 +2,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync } from 'node:fs'
-import { TIERS } from '../src/shop/tiers.js'
+import { TIERS, price } from '../src/shop/tiers.js'
 
 test('three_tiers_from_lite_to_pro', () => {
   assert.deepEqual(TIERS.map(t => t.id), ['lite', 'plus', 'pro'])
@@ -15,6 +15,10 @@ test('higher_tiers_have_longer_battery_and_faster_translation', () => {
     assert.ok(hi.latencySec < lo.latencySec, `${hi.id} phải dịch nhanh hơn ${lo.id}`)
     assert.ok(hi.priceMillion > lo.priceMillion, `${hi.id} phải đắt hơn ${lo.id}`)
   }
+})
+
+test('prices_are_written_in_full_dong', () => {
+  assert.deepEqual(TIERS.map(price), ['600.000đ', '3.490.000đ', '4.990.000đ'])
 })
 
 test('every_tier_has_a_picture_and_its_parts', () => {

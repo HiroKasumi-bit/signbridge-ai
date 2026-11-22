@@ -4,7 +4,7 @@
 export const TIERS = [
   {
     id: 'lite', name: 'Lite', line: 'Gọn nhẹ, để bắt đầu',
-    priceMillion: 2.49, batteryHours: 2, latencySec: 1.0,
+    priceMillion: 0.6, batteryHours: 2, latencySec: 1.0,
     look: 'Găng thun mịn xám than, hộp cổ tay bo tròn như viên sỏi',
     parts: {
       fingers: 'Dải cảm biến uốn mềm may chìm dọc 5 ngón',
@@ -52,4 +52,5 @@ export const COMMON = [
   ['Sạc USB-C', 'Dùng chung dây sạc điện thoại.'],
 ]
 
-export const price = t => `${t.priceMillion.toLocaleString('vi-VN', { minimumFractionDigits: 2 })} triệu`
+// Ghi giá đầy đủ kiểu Việt Nam: 600.000đ, 3.490.000đ
+export const price = t => `${Math.round(t.priceMillion * 1e6).toLocaleString('vi-VN')}đ`
