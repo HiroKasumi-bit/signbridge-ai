@@ -84,7 +84,7 @@ npm run deploy
 npm test
 ```
 
-Lệnh này chạy 6 nhóm kiểm thử:
+Lệnh này chạy 7 nhóm kiểm thử:
 - **Đối chiếu với Python:** bộ đo cử chỉ, bộ não LDA và mạng nơ-ron ASL trên web phải ra **cùng con số** với bản Python (`ai/`). Mạng nơ-ron còn phải chạy đủ nhanh cho camera.
 - **Bộ nhận diện liên tục:**
   - không có tay thì không ra từ;
@@ -100,6 +100,7 @@ Lệnh này chạy 6 nhóm kiểm thử:
   - lúc đang ghi mẫu thì không hiện từ;
   - ký hiệu riêng lưu chỗ khác, không đụng vào từ đã dạy.
 - **Khoá tab Ký hiệu riêng:** sai mật khẩu thì vẫn khoá; đúng thì mở và nhớ; bỏ qua chữ hoa, dấu cách thừa; khoá lại được.
+- **Trang Từ vựng:** mọi từ VSL đều có video; link ASL đúng dạng (nhãn viết liền như `thankyou` được đổi thành `thank-you`).
 - **Ghép câu và tìm từ** (gõ không dấu vẫn tìm được).
 - **Hai ngôn ngữ giao diện:**
   - tiếng Việt và tiếng Anh có đủ cùng một bộ câu chữ;
@@ -130,6 +131,7 @@ Lệnh này chạy 6 nhóm kiểm thử:
 | `src/views/*.js` | Phần xử lý riêng của từng trang. |
 | `src/style.css` | Giao diện. Màu lấy từ cờ cộng đồng người Điếc: xanh ngọc, vàng, xanh đậm. |
 | `public/model/vsl.json`, `asl.json` | Bộ não đã học cho từng ngôn ngữ ký hiệu, do `ai/train.py` xuất ra. Chỉ tải bộ não của ngôn ngữ đang chọn. |
+| `public/signs/vsl/` | Mỗi từ VSL một video ngắn (VieSign-10K, CC BY 4.0), do `ai/vocab_clips.py` cắt và nén (tổng 7,4 MB). Trang Từ vựng mở khi bấm vào từ; ASL thì mở SignASL.org (`signLink` trong `src/signs.js`). |
 | `public/mediapipe/` | Model dò tay và người cùng phần chạy MediaPipe, dùng cho chế độ không cần mạng. |
 
 ## Nguồn

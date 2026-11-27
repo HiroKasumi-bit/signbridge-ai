@@ -19,5 +19,14 @@ export const CUSTOM_WORDS = [
 ]
 export const customName = (label, ui) => CUSTOM_WORDS.find(w => w.id === label)?.[ui]
 
+// Cách ký từng từ (trang Từ vựng): VSL có video thật VieSign trong app (ai/vocab_clips.py);
+// ASL mở từ điển SignASL.org (video người thật). Nhãn ASL viết liền thì đổi sang từ SignASL dùng.
+const ASL_SLUG = {
+  thankyou: 'thank-you', frenchfries: 'french-fries', icecream: 'ice-cream', haveto: 'have-to',
+  callonphone: 'call', glasswindow: 'window', hesheit: 'he', minemy: 'mine', weus: 'we', owie: 'hurt', shhh: 'shh', hen: 'chicken',
+}
+export const signVideo = (sign, label) => (sign === 'vsl' ? `${import.meta.env?.BASE_URL ?? '/'}signs/vsl/${encodeURIComponent(label)}.mp4` : null)
+export const signLink = (sign, label) => (sign === 'asl' ? `https://www.signasl.org/sign/${ASL_SLUG[label] ?? label.toLowerCase()}` : null)
+
 // Tên một từ theo ngôn ngữ giao diện; không có bản dịch thì dùng nhãn gốc (bỏ dấu gạch dưới).
 export const wordName = (sign, label, ui) => customName(label, ui) ?? SIGNS[sign]?.names[label]?.[ui] ?? wordLabel(label)

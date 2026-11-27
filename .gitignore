@@ -4,6 +4,7 @@ out/
 *.mov
 # phim logo do nhóm tự render (web/render/logo_scene.py) thì được đưa lên
 !web/public/gioi-thieu/*.mp4
+!web/public/signs/vsl/*.mp4
 .impeccable/review/
 .impeccable/mocks/
 .DS_Store

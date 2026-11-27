@@ -175,7 +175,16 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 6
 .group { margin-bottom: 18px }
 .group h2 { font-size: 15px; font-weight: 600; color: var(--muted); margin-bottom: 8px }
 .group div { display: flex; flex-wrap: wrap; gap: 8px }
-.group .word { background: var(--teal-soft); border-color: transparent; font-size: 16px; padding: 4px 12px }
+.group .word { background: var(--teal-soft); border-color: transparent; font-size: 16px; padding: 4px 12px; font-family: inherit; cursor: pointer; text-decoration: none; transition: background-color .15s, color .15s }
+.group .word:hover { background: var(--teal-ink); color: #fff }
+.group a.word::after { content: "↗"; margin-left: 4px; font-size: 13px; opacity: .6 } /* mở trang khác */
+#vhint { margin-top: 10px }
+/* khung xem cách ký (VSL) */
+.sign-dialog { margin: auto; width: min(92vw, 440px); border: 0; border-radius: var(--r); padding: 14px 16px 12px; color: var(--navy); background: var(--card); box-shadow: 0 2px 6px rgba(24, 38, 90, .1), 0 18px 48px rgba(24, 38, 90, .22) }
+.sign-dialog::backdrop { background: rgba(24, 38, 90, .45) }
+.sign-dialog b { font-size: 22px; font-weight: 600 }
+.sign-dialog video { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: var(--navy); border-radius: 14px; margin: 8px 0 6px }
+.sign-dialog small { font-size: 12px; color: var(--muted) }
 .credit { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted) }
 
 /* ---------- thanh chuyển trang ---------- */

@@ -131,6 +131,7 @@
           <svg><use href="#i-search"/></svg>
           <input type="search" id="vsearch" placeholder="Tìm từ, ví dụ: bệnh viện" autocomplete="off" aria-label="Tìm từ" data-t-attr="placeholder:vocab.search;aria-label:vocab.searchLabel">
         </label>
+        <p class="note" id="vhint"></p>
         <p class="note" id="vcount" aria-live="polite"></p>
         <div id="groups"></div>
         <p class="credit">
@@ -194,6 +195,19 @@
       </div>
     </section>
   </main>
+
+  <!-- Khung xem cách ký một từ VSL (video VieSign-10K, CC BY 4.0) -->
+  <dialog class="sign-dialog" id="signDialog" aria-labelledby="sdTitle">
+    <div class="row">
+      <b id="sdTitle"></b>
+      <button class="icon-btn" id="sdClose" aria-label="Đóng" title="Đóng" data-t-attr="aria-label:sign.close;title:sign.close"><svg><use href="#i-x"/></svg></button>
+    </div>
+    <video id="sdVideo" muted loop playsinline></video>
+    <div class="row">
+      <button class="text-btn strong" id="sdSlow" type="button" data-t="sign.slow">Xem chậm</button>
+      <small data-t="sign.credit">Video: VieSign-10K (CC BY 4.0)</small>
+    </div>
+  </dialog>
 
 
   <script type="module" src="/src/main.js"></script>

@@ -164,6 +164,7 @@ Khi chạy thật, app chỉ hiện chữ khi AI đủ tự tin (so với LDA c�
 | `nn/cache.py` | Gom mọi mẫu vào một file (`data/<ngôn ngữ>/nn_cache.npz`, khoảng 2 GB với ASL) để dạy mạng nơ-ron nhanh. |
 | `nn/train.py` | Dạy mạng nơ-ron trên GPU, chấm trên người lạ giống `train.py`, hoặc dạy bản cuối (`--final`). |
 | `nn/export.py` | Gộp BatchNorm, nén 8-bit, ghép vào `web/public/model/<ngôn ngữ>.json` (khoá `net`), kiểm tra bản nén bằng numpy và ghi `tests/fixtures/parity_nn.json` cho web đối chiếu. |
+| `vocab_clips.py` | Cắt mỗi từ VSL một video ngắn (ưu tiên người ký có nhiều video nhất), nén còn khoảng 40 KB, cho trang Từ vựng. |
 | `tests/` | Kiểm thử tự động, gồm cả bài đối chiếu để bản web và bản Python tính ra cùng một kết quả. |
 
 ## Chạy lại từ đầu
