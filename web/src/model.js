@@ -1,5 +1,9 @@
-// "Bộ não" AI: model tuyến tính (LDA) train bằng ai/train.py, trọng số lưu trong public/model/<vsl|asl>.json.
-// Tính toán chỉ là nhân ma trận + cộng + softmax, nên không cần thư viện AI nào.
+// "Bộ não" AI, trọng số lưu trong public/model/<vsl|asl>.json:
+// - LDA (ai/train.py): nhân ma trận + softmax trên vector tóm tắt của ký hiệu. Luôn có; cũng là "không gian ký hiệu"
+//   để so các từ người dùng tự dạy (custom.js).
+// - Mạng nơ-ron (ai/nn/, khoá "net", nếu có): xem cả chuỗi khung, chính xác hơn; dùng khi có khung của ký hiệu.
+// Không cần thư viện AI nào.
+import { runNet } from './net.js'
 
 // Nhãn "không phải từ nào": AI học nó từ video của các từ nó không dạy, để biết bỏ qua cử động bừa.
 // Phải trùng với OTHER trong ai/train.py.
@@ -50,13 +54,16 @@ export function scores(model, vec) {
   return x
 }
 
-export function predict(model, vec) {
-  const x = scores(model, vec)
+/** Đoán từ cho một ký hiệu. frames (khung của ký hiệu): có thì dùng mạng nơ-ron (nếu model có), không thì LDA. */
+export function predict(model, vec, frames = null) {
+  const net = frames && model.net
+  const x = net ? runNet(model.net, frames) : scores(model, vec)
+  const labels = net ? model.net.labels : model.labels
   const m = Math.max(...x)
   const e = x.map(v => Math.exp(v - m))
   const s = e.reduce((a, b) => a + b, 0)
   const probs = e.map(v => v / s)
   let best = 0
   probs.forEach((p, i) => { if (p > probs[best]) best = i })
-  return { label: model.labels[best], prob: probs[best], probs }
+  return { label: labels[best], prob: probs[best], probs }
 }

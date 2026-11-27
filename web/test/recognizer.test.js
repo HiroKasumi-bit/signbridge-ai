@@ -29,7 +29,7 @@ test('sign_then_rest_fires_once', () => {
 test('decides_on_the_whole_sign_after_hands_drop', () => {
   // AI chỉ được hỏi cho trọn ký hiệu: lần chốt dùng đủ 30 khung có tay, và xảy ra sau khi hạ tay.
   const seen = []
-  const rec = createRecognizer({}, { predictFn: (m, v, n) => { seen.push(n); return { label: 'ho', prob: 0.9 } } })
+  const rec = createRecognizer({}, { predictFn: (m, v, frames) => { seen.push(frames.length); return { label: 'ho', prob: 0.9 } } })
   const frames = [...many(30, handFrame), ...many(10, emptyFrame)]
   const firedAt = frames.findIndex((f, i) => rec.push(f, i * 33))
   assert.ok(firedAt >= 30, `chốt quá sớm ở khung ${firedAt}`)
@@ -94,4 +94,15 @@ test('long_continuous_signing_is_cut_at_max_length', () => {
   const rec = createRecognizer({}, { predictFn: () => ({ label: ++n < 40 ? 'ho' : 'mệt', prob: 0.9 }) })
   const words = run(rec, many(240, handFrame)).map(e => e.word) // 8 giây liền không hạ tay
   assert.ok(words.length >= 1 && words[0] === 'ho')
+})
+
+test('a_neural_net_model_previews_less_often', () => {
+  // mạng nơ-ron nặng hơn LDA (~50 ms mỗi lần): chữ xem trước được đoán thưa hơn để camera không giật
+  const count = model => {
+    let calls = 0
+    const rec = createRecognizer(model, { predictFn: () => { calls++; return { label: 'ho', prob: 0.9 } } })
+    run(rec, many(40, handFrame))
+    return calls
+  }
+  assert.ok(count({ net: {} }) <= count({}) / 2, `${count({ net: {} })} vs ${count({})}`)
 })

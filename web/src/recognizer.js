@@ -14,13 +14,14 @@ const raised = f => hasHands(f) && Math.min(f[16], f[19]) < 0.9
 
 export function createRecognizer(model, opts = {}) {
   // custom: các từ người dùng tự dạy (custom.js), được hỏi trước AI chính
-  const o = { minProb: model.minProb ?? 0.5, minFrames: 10, restFrames: 6, maxFrames: 90, previewEvery: 4, previewWindow: 40, predictFn: predict, custom: null, ...opts }
+  // Mạng nơ-ron (~50 ms mỗi lần đoán) xem trước thưa hơn LDA để camera không bị giật.
+  const o = { minProb: model.minProb ?? 0.5, minFrames: 10, restFrames: 6, maxFrames: 90, previewEvery: model.net ? 10 : 4, previewWindow: 40, predictFn: predict, custom: null, ...opts }
   let seg = [], rest = 0, lastWord = null, recorder = null
 
   // Hỏi từ tự dạy trước, rồi tới AI; chỉ giữ câu trả lời là một từ thật và đủ tự tin.
   const ask = frames => {
     const vec = sequenceVector(frames)
-    const r = o.predictFn(model, vec, frames.length)
+    const r = o.predictFn(model, vec, frames) // có khung thì dùng mạng nơ-ron (nếu model có)
     const mine = o.custom?.match(vec, r)
     if (mine) return mine
     return r.label !== OTHER && r.prob >= o.minProb ? r : null

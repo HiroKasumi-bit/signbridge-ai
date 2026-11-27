@@ -34,13 +34,15 @@ def test_export_roundtrip():
 
 
 def test_labels_end_with_not_a_sign_and_match_vocab_page():
-    """Nhãn cuối là "không phải từ nào"; trang Từ vựng liệt kê đúng các từ còn lại; có ngưỡng tự tin."""
+    """Nhãn cuối là "không phải từ nào"; trang Từ vựng liệt kê đúng các từ của bộ não đang trả lời
+    (mạng nơ-ron nếu có, không thì LDA); có ngưỡng tự tin."""
     assert "vsl" in LANGS
     for lang in LANGS:
         m = json.load(open(model_path(lang), encoding="utf-8"))
         words = json.load(open(words_path(lang), encoding="utf-8"))
-        assert m["labels"][-1] == "_khác"
-        assert m["labels"][:-1] == words
+        labels = m["net"]["labels"] if "net" in m else m["labels"]
+        assert m["labels"][-1] == "_khác" and labels[-1] == "_khác"
+        assert labels[:-1] == words
         assert 0 <= m["minProb"] < 1
 
 

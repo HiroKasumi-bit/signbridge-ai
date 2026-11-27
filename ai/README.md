@@ -1,6 +1,6 @@
 # Phần AI: dạy máy hiểu ngôn ngữ ký hiệu
 
-Thư mục này dạy AI nhận ra **183 ký hiệu ngôn ngữ ký hiệu Việt Nam** (VSL, ngôn ngữ chính) và **112 ký hiệu ngôn ngữ ký hiệu Mỹ** (ASL), đồng thời **bỏ qua cử động không phải ký hiệu nó biết**, rồi xuất "bộ não" AI cho website dùng. Mỗi ngôn ngữ một bộ não riêng, cùng một cách tính.
+Thư mục này dạy AI nhận ra **183 ký hiệu ngôn ngữ ký hiệu Việt Nam** (VSL, ngôn ngữ chính) và **250 ký hiệu ngôn ngữ ký hiệu Mỹ** (ASL, bằng mạng nơ-ron: xem mục "ASL bằng mạng nơ-ron"), đồng thời **bỏ qua cử động không phải ký hiệu nó biết**, rồi xuất "bộ não" AI cho website dùng. Mỗi ngôn ngữ một bộ não riêng.
 
 ## AI hoạt động thế nào
 
@@ -84,7 +84,7 @@ Chênh lệch không đáng kể, nên dạy bằng dữ liệu Holistic vẫn d
 - Bỏ ra 827 video của các từ cùng nghĩa với một từ ASL (mắt, uống, ngủ…), vì ký hiệu hai nước cho các từ này thường giống nhau.
 - Đã thử cả khi giữ và khi bỏ các video này: kết quả gần như nhau (đúng ngay lần đầu 57,2% và 57,3%).
 
-**Kết quả** (18/11/2026, chấm trên người lạ, cách chấm giống VSL): dạy **112/250 từ**.
+**Kết quả LDA (bản cũ, 18/11/2026)**, chấm trên người lạ, cách chấm giống VSL: dạy **112/250 từ**.
 
 | Khi bắt buộc chọn 1 trong 112 từ | Kết quả |
 |---|---|
@@ -100,6 +100,56 @@ Khi chạy thật, app chỉ hiện chữ lúc AI đủ tự tin (ngưỡng 0,20
 
 **Vì sao kém VSL dù nhiều dữ liệu hơn:** LDA chỉ chia các từ bằng "đường thẳng". Thử 30 mẫu mà AI **đã được học**, nó vẫn chỉ đoán đúng 16. Vậy kiểu AI này đã hết sức, không phải thiếu dữ liệu. Bước tiếp theo nên thử mạng nơ-ron: phần web đã chạy được bộ não nhiều lớp.
 
+## ASL bằng mạng nơ-ron (27/11/2026, thay LDA)
+
+LDA đã hết sức với ASL, nên ASL chuyển sang mạng nơ-ron (thư mục `nn/`). VSL vẫn dùng LDA vì mỗi từ VSL chỉ có vài chục video: lần thử trước, mạng nơ-ron nhỏ trên VSL còn kém LDA (20,6% so với 32,5%).
+
+**Cách làm** (học theo lời giải hạng nhất cuộc thi Kaggle, thu nhỏ cho vừa web):
+- **Đầu vào:** cả chuỗi khung của ký hiệu, lấy đều 32 khung. Mỗi khung có 184 số như LDA (vị trí 7 điểm người, vị trí và hình dạng hai bàn tay, có tay hay không), cộng tốc độ (khung này trừ khung trước): 368 số.
+- **Mạng:** 2 nhóm, mỗi nhóm 3 khối tích chập theo thời gian và 1 khối Transformer, rồi lấy trung bình theo thời gian và chấm điểm 250 từ cộng "không phải từ nào". Có 0,83 triệu tham số, nén 8-bit.
+- **Nhân bản dữ liệu ngay trên GPU, mỗi lượt học một kiểu khác:**
+  - lật gương, cắt đầu cuối, ký nhanh chậm không đều;
+  - xoay ±15°, to nhỏ ±20%, nghiêng, co giãn ngang;
+  - từng bàn tay xoay hoặc dời chỗ một chút, tay run, thỉnh thoảng mất tay vài khung.
+- **Học:** 80 lượt, khoảng 13 phút trên RTX 4060 Laptop.
+- **Chấm:** cùng cách chia người lạ như LDA (5 phần, người lúc kiểm tra chưa từng xuất hiện lúc học).
+
+**Kết quả** (250 từ, người lạ, cả 5 phần):
+
+| Khi bắt buộc chọn 1 trong 250 từ | Kết quả |
+|---|---|
+| Đoán đúng ngay lần đầu | **65,9%** |
+| Từ đúng nằm trong 5 gợi ý đầu | 85,3% |
+| Số từ nhận đúng từ 40% trở lên | 236/250 (LDA: 112) |
+
+So cùng điều kiện với LDA (cả 5 phần, cùng 112 từ LDA đã dạy, chỉ chọn trong 112 từ đó): mạng nơ-ron **83,1%**, LDA 57,3%. Từng phần: 56,1%, 65,6%, 68,5%, 68,6%, 70,1% (250 từ): mỗi nhóm người lạ khó dễ khác nhau.
+
+Khi chạy thật, app chỉ hiện chữ khi AI đủ tự tin (so với LDA cũ: nhận đúng 23,2%, nhầm 3,6%, bỏ sót 73,1%, cử động lạ 9,1%). Ngưỡng 0,45 được chọn sao cho **khi đã hiện chữ thì ít nhất 8/10 lần đúng**, và cử động lạ bị nhận thành chữ không quá 10%:
+
+| Người dùng làm | Nhận đúng | Nhận nhầm sang từ khác | Không hiện gì |
+|---|---|---|---|
+| Một trong 250 từ | **57,0%** | 12,9% | 30,1% |
+| Ký hiệu VSL của từ không có trong ASL | — | **0,7%** bị nhận thành chữ | 99,3% |
+
+**Các cách đã thử** (phần 1/5, cùng cách chấm):
+
+| Thử | Đúng ngay lần đầu |
+|---|---|
+| MLP trên vector tóm tắt 2.024 số (như LDA) | 28,8% |
+| Tích chập + Transformer, 1,25 triệu tham số, 60 lượt | 55,8% |
+| To hơn (1,77 triệu), 150 lượt | 56,2% |
+| Nhân bản mạnh, 1,25 triệu tham số | 56,3% |
+| **Nhân bản mạnh, 0,83 triệu tham số (chọn: ngang kết quả, chạy nhanh hơn)** | **56,1%** |
+| Cùng mạng 1,25 triệu, nhưng chia NGẪU NHIÊN (người kiểm tra đã gặp lúc học) | 80,2% |
+
+**Vì sao không được 90% như Kaggle:**
+- Đội hạng nhất Kaggle đạt 89,3%, nhưng họ học trên cả 21 người rồi chấm trên bộ kiểm tra riêng của cuộc thi, nên không so trực tiếp được.
+- Dòng cuối bảng trên cho thấy: ở phần 1, nếu đã gặp người đó lúc học thì mạng đúng 80%, gặp người lạ thì chỉ 56%. Gặp người mới là khó nhất.
+- Một dự án độc lập chấm đúng kiểu người lạ trên cùng bộ dữ liệu (github.com/shravnchandr/Sign-Language-Translation) đạt 68–72% (giữ lại 3 người). Họ dùng mô hình lớn hơn nhiều và có cả điểm mắt, môi. Mạng của mình đạt 65,9% mà chỉ dùng tay và vai.
+- App của mình chưa dò mặt, để camera chạy nhanh. Thêm điểm môi và mắt là bước tiếp theo nếu cần chính xác hơn.
+
+**Trên web** (`web/src/net.js`): JavaScript thuần, khoảng 20 ms mỗi ký hiệu trên Chrome laptop. Phần LDA vẫn nằm trong `asl.json`, vì các từ người dùng tự dạy được so trong "không gian" của LDA.
+
 ## Các file
 
 | File | Làm gì |
@@ -111,6 +161,9 @@ Khi chạy thật, app chỉ hiện chữ lúc AI đủ tự tin (ngưỡng 0,20
 | `train.py` | Chọn từ AI học được, nhân bản dữ liệu, dạy LDA, chấm điểm trung thực, chọn ngưỡng tự tin. Xuất `web/public/model/<vsl\|asl>.json` và `web/src/words/<vsl\|asl>.json` (danh sách cho trang Từ vựng). Mỗi ngôn ngữ mất khoảng 20 phút. |
 | `extract_holistic.py` | Chấm lại mọi video VieSign bằng MediaPipe Holistic (cùng kiểu với dữ liệu ASL), làm nhãn "không phải từ nào" cho ASL. Khoảng 2 giờ. |
 | `extract_asl.py` | Đổi dữ liệu ASL của Google sang 149 số mỗi khung, ước lượng tỉ lệ khung từng người, thêm video VieSign làm "không phải từ nào". |
+| `nn/cache.py` | Gom mọi mẫu vào một file (`data/<ngôn ngữ>/nn_cache.npz`, khoảng 2 GB với ASL) để dạy mạng nơ-ron nhanh. |
+| `nn/train.py` | Dạy mạng nơ-ron trên GPU, chấm trên người lạ giống `train.py`, hoặc dạy bản cuối (`--final`). |
+| `nn/export.py` | Gộp BatchNorm, nén 8-bit, ghép vào `web/public/model/<ngôn ngữ>.json` (khoá `net`), kiểm tra bản nén bằng numpy và ghi `tests/fixtures/parity_nn.json` cho web đối chiếu. |
 | `tests/` | Kiểm thử tự động, gồm cả bài đối chiếu để bản web và bản Python tính ra cùng một kết quả. |
 
 ## Chạy lại từ đầu
@@ -132,4 +185,14 @@ uvx --with six kaggle competitions download -c asl-signs -p data/asl
 uv run --no-project --python 3.12 --with mediapipe==0.10.14 --with opencv-python --with "numpy<2" python extract_holistic.py
 uv run python extract_asl.py
 uv run python train.py asl
+```
+
+Mạng nơ-ron cho ASL (cần GPU NVIDIA; PyTorch khoảng 2,5 GB):
+
+```bash
+uv sync --group nn
+uv run python -m nn.cache asl
+uv run python -m nn.train asl --dim 128 --aug strong --epochs 80 --folds all --tag cv   # chấm 5 phần, khoảng 1 giờ
+uv run python -m nn.train asl --dim 128 --aug strong --epochs 80 --final --tag final    # bản cuối, khoảng 13 phút
+uv run python -m nn.export asl --tag final --metrics data/nn_asl_conv_cv_metrics.json
 ```

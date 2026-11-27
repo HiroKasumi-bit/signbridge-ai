@@ -85,7 +85,7 @@ npm test
 ```
 
 Lệnh này chạy 6 nhóm kiểm thử:
-- **Đối chiếu với Python:** bộ đo cử chỉ và bộ não trên web phải ra **cùng con số** với bản Python (`ai/`).
+- **Đối chiếu với Python:** bộ đo cử chỉ, bộ não LDA và mạng nơ-ron ASL trên web phải ra **cùng con số** với bản Python (`ai/`). Mạng nơ-ron còn phải chạy đủ nhanh cho camera.
 - **Bộ nhận diện liên tục:**
   - không có tay thì không ra từ;
   - chỉ chốt sau khi hạ tay, cho trọn ký hiệu;
@@ -117,7 +117,8 @@ Lệnh này chạy 6 nhóm kiểm thử:
 | `src/signs.js` | Danh sách ngôn ngữ ký hiệu: mỗi ngôn ngữ có danh sách từ, tên từ hai thứ tiếng và vài từ ví dụ. |
 | `src/tracker.js` | "Mắt": MediaPipe dò tay và người trong từng khung hình. |
 | `src/features.js` | Bộ đo cử chỉ: đổi điểm khớp thành 149 con số. Đây là bản dịch y hệt của `ai/sign/features.py`. |
-| `src/model.js` | "Bộ não" (LDA, 0,5 MB, trọng số 8-bit). Chỉ là nhân ma trận + softmax, nên không cần thư viện AI. |
+| `src/model.js` | "Bộ não". VSL: LDA (0,5 MB, trọng số 8-bit), chỉ là nhân ma trận + softmax. ASL: mạng nơ-ron (`net.js`) khi có khung của ký hiệu; phần LDA vẫn giữ để so các từ tự dạy. Không cần thư viện AI. |
+| `src/net.js` | Mạng nơ-ron ASL (dạy bằng `ai/nn/`): xem cả chuỗi 32 khung của ký hiệu, tích chập theo thời gian + Transformer, khoảng 20 ms mỗi ký hiệu trên Chrome laptop. Chữ xem trước được đoán thưa hơn (mỗi 10 khung) để camera không giật. |
 | `src/recognizer.js` | Tách từng ký hiệu theo lúc **hạ tay**: giơ tay thì gom khung, hạ tay ~0,2 giây thì đoán cả đoạn (giống lúc AI học). Ra liền mạch quá 3 giây thì tự chốt. AI đoán "không phải từ nào" hoặc dưới ngưỡng tự tin thì bỏ qua. |
 | `src/custom.js` | Lưu mẫu người dùng tự ghi và nhận các ký hiệu đó (từ tự dạy, ký hiệu riêng). `recognizer.js` hỏi nó trước khi hỏi AI chính. |
 | `src/lock.js` | Khoá tab Ký hiệu riêng bằng mật khẩu (tạm thời, thay cho tài khoản trả phí). |

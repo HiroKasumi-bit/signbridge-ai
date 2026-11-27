@@ -19,3 +19,15 @@ package = false
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+
+# Mạng nơ-ron (train_nn.py) chỉ cần lúc dạy, chạy trên GPU NVIDIA: uv sync --group nn
+[dependency-groups]
+nn = ["torch>=2.5"]
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
